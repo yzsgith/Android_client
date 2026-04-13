@@ -3,3 +3,5 @@ plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.kotlin.compose) apply false
 }
+// 导入自定义工具任务
+apply(from = "tool.gradle.kts")
