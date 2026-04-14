@@ -10,7 +10,7 @@ import com.sea.auspicious_sign.domain.processor.DataProcessor
  */
 class HeartRateSmoother : DataProcessor<RawHeartRate, SmoothedHeartRate> {
     override suspend fun process(input: RawHeartRate): SmoothedHeartRate {
-        // TODO: 实现平滑算法
+        // TODO: 实现平滑算法（当前仅为占位）
         return SmoothedHeartRate(
             bpm = input.bpm,
             isValid = input.confidence > 0.7f,

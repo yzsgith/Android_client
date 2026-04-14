@@ -1,3 +1,7 @@
+import android.app.Application
+import androidx.work.WorkManager
+import com.sea.auspicious_sign.BuildConfig
+
 // AuspiciousSignApplication.kt
 // TODO: 策略：在应用启动时检查版本号，若升级则取消旧版本的任务并重新安排。
 class AuspiciousSignApplication : Application() {

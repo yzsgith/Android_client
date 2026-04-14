@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "auspicious_sign"
 include(":app")
- 
+include(":domain")

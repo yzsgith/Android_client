@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>WebView Bridge 测试</title>
+    <style>
+        button { display: block; margin: 10px; padding: 10px; font-size: 16px; }
+    </style>
+</head>
+<body>
+<h1>JS Bridge 测试</h1>
+<button onclick="AndroidBridge.showToast('Hello from JS!')">显示 Toast</button>
+<button onclick="AndroidBridge.startAutoUpload(5000)">开始自动上传</button>
+<button onclick="AndroidBridge.stopAutoUpload()">停止自动上传</button>
+<p id="result"></p>
+<script>
+    console.log("页面加载完成");
+</script>
+</body>
+</html>

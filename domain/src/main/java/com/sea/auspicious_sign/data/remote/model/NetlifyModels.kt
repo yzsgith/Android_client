@@ -11,6 +11,6 @@ data class ProcessRequest(
 )
 
 data class ResultResponse(
-    val status: String,   // "pending", "success", "failed"
+    val status: String,   // "processing", "completed", "failed"
     val result: String? = null
 )

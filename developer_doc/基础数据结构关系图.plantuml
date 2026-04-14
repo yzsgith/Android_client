@@ -1,45 +1,47 @@
 @startuml
 !define RECTANGLE class
 
-title 基础数据结构关系图
+title 基础数据结构关系图（domain 模块 + app 模块）
 
-' 阶段标记接口
-interface RawData
-interface TransformedData
-interface ConsumableData
+' ========== domain 模块（纯 Kotlin 逻辑） ==========
+package "domain 模块" {
+  interface RawData
+  interface TransformedData
+  interface ConsumableData
 
-' Room 实体
-class RawDataEntity implements RawData
-class TransformedDataEntity implements TransformedData
-class ConsumableDataEntity implements ConsumableData
+  class RawHeartRate implements RawData
+  class RawAccelerometer implements RawData
+  class SmoothedHeartRate implements TransformedData
+  class HeartRateAlert implements ConsumableData
+  class StepCount implements ConsumableData
 
-' 具体数据类型
-class RawHeartRate implements RawData
-class RawAccelerometer implements RawData
-class SmoothedHeartRate implements TransformedData
-class HeartRateAlert implements ConsumableData
-class StepCount implements ConsumableData
+  interface DataProcessor<IN, OUT> {
+    + suspend process(IN): OUT
+  }
 
-' 处理流水线
-interface DataProcessor<IN, OUT> {
-  + suspend process(IN): OUT
+  class ProcessorChain {
+    - steps: List<DataProcessor<*, *>>
+    + execute(Any): Any
+  }
+
+  enum SyncStatus {
+    PENDING
+    SUCCESS
+    FAILED
+  }
+
+  class UploadResponse
+  class ProcessRequest
+  class ResultResponse
 }
 
-class FlexiblePipeline {
-  - steps: List<ProcessStep>
-  + execute(Any): Any
+' ========== app 模块（Android 相关） ==========
+package "app 模块" {
+  class RawDataEntity implements RawData
+  class TransformedDataEntity implements TransformedData
+  class ConsumableDataEntity implements ConsumableData
+  class SyncQueueEntity
 }
-
-enum SyncStatus {
-  PENDING
-  SUCCESS
-  FAILED
-}
-
-' 网络模型
-class UploadResponse
-class ProcessRequest
-class ResultResponse
 
 ' 关联关系
 RawDataEntity --> ConsumableDataEntity : "1 : n\n通过转化链关联"
@@ -47,7 +49,7 @@ ConsumableDataEntity --> SyncQueueEntity : "0..1 : 1\n同步队列"
 HeartRateSmoother ..|> DataProcessor
 HeartRateAnalyzer ..|> DataProcessor
 
-note top of FlexiblePipeline : 组合多个 DataProcessor\n支持运行时链式调用
+note top of ProcessorChain : 组合多个 DataProcessor\n支持运行时链式调用
 note right of SyncStatus : 用于 ConsumableDataEntity\n的同步状态
 
 @enduml

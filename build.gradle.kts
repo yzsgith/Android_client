@@ -2,6 +2,11 @@
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.kotlin.compose) apply false
+    alias(libs.plugins.jetbrains.kotlin.jvm) apply false
+    id("com.google.devtools.ksp") version "2.3.4" apply false
+
+//    alias(libs.plugins.legacy.kapt) apply false
+
 }
 // 导入自定义工具任务
 apply(from = "tool.gradle.kts")

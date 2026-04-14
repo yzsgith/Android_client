@@ -1,16 +1,9 @@
 package com.sea.auspicious_sign.domain.processor.impl
 
+import com.sea.auspicious_sign.domain.model.AlertLevel
 import com.sea.auspicious_sign.domain.model.HeartRateAlert
 import com.sea.auspicious_sign.domain.model.SmoothedHeartRate
 import com.sea.auspicious_sign.domain.processor.DataProcessor
-
-enum class AlertLevel { NORMAL, WARNING, CRITICAL }
-
-data class HeartRateAlert(
-    val level: AlertLevel,
-    val message: String,
-    val timestamp: Long
-)
 
 /**
  * 心率分析处理器：平滑心率 -> 告警等级
