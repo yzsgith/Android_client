@@ -20,4 +20,6 @@ class SensorDataRepository(context: Context) {
         // getUnsynced() 返回 Flow<List<RawDataEntity>>，使用 first() 获取当前值
         database.rawDataDao().getUnsynced().first()
     }
+
+
 }

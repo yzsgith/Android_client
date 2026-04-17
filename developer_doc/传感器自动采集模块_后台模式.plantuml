@@ -1,0 +1,54 @@
+@startuml
+title **传感器数据采集、处理与同步流程**\n（阶段二～阶段四）
+
+' 阶段二：模拟采集与存储（任务 T-009, T-010, T-011, T-013）
+box "阶段二：传感器模拟采集与存储" #LightBlue
+    actor 用户
+    participant "HeartRateCollector\n(T-009)" as Collector
+    participant "AccelerometerCollector\n(T-010)" as AccCollector
+    participant "SensorDataRepository\n(T-011)" as Repo
+    participant "Room Database\n(T-025~T-034)" as DB
+end box
+
+' 阶段三：处理流水线（任务 T-015~T-024）
+box "阶段三：数据处理流水线" #LightGreen
+    participant "ProcessorRegistry\n(T-020)" as Registry
+    participant "ProcessorChain\n(T-019)" as Chain
+    participant "DataProcessor(s)\n(T-021, T-022)" as Processor
+end box
+
+' 阶段四：同步到云端（任务 T-012, T-039, T-040）
+box "阶段四：WorkManager 上传" #LightYellow
+    participant "SyncWorker\n(T-040)" as Sync
+    participant "Netlify Server" as Server
+end box
+
+' 时序流程
+用户 -> Collector: 启动采集 (T-009)
+Collector -> Collector: 每秒产生 RawHeartRate
+Collector -> Repo: insertRawData(raw)
+Repo -> DB: 存储 RawDataEntity
+
+用户 -> AccCollector: 启动采集 (T-010)
+AccCollector -> AccCollector: 模拟加速度数据
+AccCollector -> Repo: insertRawData(raw)
+
+Repo -> Registry: getChain(RawHeartRate::class)
+Registry --> Repo: ProcessorChain
+Repo -> Chain: execute(raw)
+Chain -> Processor: 平滑处理 (T-021)
+Processor --> Chain: SmoothedHeartRate
+Chain -> Processor: 分析处理 (T-022)
+Processor --> Chain: HeartRateAlert
+Chain --> Repo: 最终 ConsumableData
+Repo -> DB: 存储 ConsumableDataEntity
+
+' 同步触发
+Repo -> Sync: 触发同步 (T-040)
+Sync -> DB: 读取未同步数据
+DB --> Sync: 返回数据列表
+Sync -> Server: POST /api/sync (T-035)
+Server --> Sync: 200 OK
+Sync -> DB: 更新 synced 标志
+
+@enduml
