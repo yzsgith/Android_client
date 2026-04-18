@@ -58,6 +58,9 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.activity.ktx)
+    implementation(libs.androidx.fragment.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -116,4 +119,7 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
 
     implementation("androidx.appcompat:appcompat:1.6.1")
+
+//  是官方推荐的持久化键值存储，支持 Kotlin 协程，类型安全，且默认值处理方便。
+    implementation("androidx.datastore:datastore-preferences:1.1.0")
 }
