@@ -1,5 +1,5 @@
 // TODO: 作用 -- 执行 UploadRequest，通过 OkHttpClient 发送请求，支持自动重试和超时
-package com.sea.auspicious_sign.network
+package com.sea.auspicious_sign.upload_data
 
 import android.util.Log
 import kotlinx.coroutines.delay
@@ -59,11 +59,6 @@ class Uploader(private val client: OkHttpClient) {
         return Result.failure(IOException("Unexpected end of retry loop"))
     }
 
-    /**
-     * 将 [UploadRequest] 转换为 OkHttp 的 [Request] 对象
-     * @param request 上传请求参数
-     * @return OkHttp Request 对象
-     */
     private fun buildOkHttpRequest(request: UploadRequest): Request {
         val body = request.body?.toRequestBody("application/json".toMediaType())
             ?: RequestBody.create(null, "")

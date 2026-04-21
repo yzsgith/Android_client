@@ -1,14 +1,12 @@
-
-// TODO: 作用 -- 自定义 Application，初始化 WorkManager 并配置上传依赖（URL 从 DataStore 读取）
+// TODO: 作用 -- 自定义 Application，创建全局的 Uploader 和基础请求模板，供 SensorUploadWorker 使用（避免 WorkManager 重复初始化）
 package com.sea.auspicious_sign
 
 import android.app.Application
-import androidx.work.Configuration
-import androidx.work.WorkManager
-import com.sea.auspicious_sign.network.RetryPolicy
-import com.sea.auspicious_sign.network.UploadRequest
-import com.sea.auspicious_sign.network.Uploader
-import com.sea.auspicious_sign.sensor.upload.SensorUploadWorkerFactory
+
+import com.sea.auspicious_sign.upload_data.RetryPolicy
+import com.sea.auspicious_sign.upload_data.UploadRequest
+import com.sea.auspicious_sign.upload_data.Uploader
+
 import com.sea.auspicious_sign.utils.AppPreferences
 import com.sea.auspicious_sign.utils.dataStore
 import kotlinx.coroutines.runBlocking
@@ -16,11 +14,16 @@ import okhttp3.OkHttpClient
 
 /**
  * 自定义 Application 类
- * 负责初始化 WorkManager 并注入传感器上传所需的依赖（Uploader 和基础请求模板）
+ * 负责创建全局的 Uploader 和基础请求模板，供 SensorUploadWorker 通过单例获取。
+ * 注意：不再手动初始化 WorkManager，避免与默认的 WorkManagerInitializer 冲突。
  */
 class AuspiciousSignApplication : Application() {
 
-    /** 基础上传请求模板，供 [SensorUploadWorker] 使用，URL 从 DataStore 动态读取 */
+    /** 上传执行器单例，供 Worker 使用 */
+    lateinit var uploader: Uploader
+        private set
+
+    /** 基础上传请求模板（URL 从 DataStore 动态读取），供 Worker 复制并填充 body */
     lateinit var baseUploadRequest: UploadRequest
         private set
 
@@ -45,14 +48,7 @@ class AuspiciousSignApplication : Application() {
             retryPolicy = RetryPolicy.DEFAULT
         )
 
-        // 3. 创建 Uploader 和自定义 WorkerFactory
-        val uploader = Uploader(OkHttpClient())
-        val factory = SensorUploadWorkerFactory(uploader, baseUploadRequest)
-
-        // 4. 初始化 WorkManager，使用自定义工厂
-        val config = Configuration.Builder()
-            .setWorkerFactory(factory)
-            .build()
-        WorkManager.initialize(this, config)
+        // 3. 创建 Uploader 实例
+        uploader = Uploader(OkHttpClient())
     }
 }
