@@ -20,7 +20,12 @@ interface RawDataDao {
 
     @Query("DELETE FROM raw_data WHERE id = :id")
     suspend fun deleteById(id: String)
-    // RawDataDao.kt
+
+    /**
+     * 分批查询未同步的原始数据
+     * @param limit 每批最大记录数
+     * @return Flow 发射包含最多 [limit] 条记录的列表，当数据库变化时会重新查询
+     */
     @Query("SELECT * FROM raw_data WHERE synced = 0 ORDER BY timestamp ASC LIMIT :limit")
     fun getUnsyncedBatch(limit: Int): Flow<List<RawDataEntity>>
 }

@@ -38,6 +38,11 @@ object AppPreferences {
         dataStore.data.map { it[ENABLE_ACCEL] ?: DEFAULT_ENABLE_ACCEL }
 
     // ---------- 挂起函数（单次读取） ----------
+    /**
+     * 获取 API 基础 URL
+     * @param dataStore DataStore 实例
+     * @return 存储的 URL，若未设置则返回默认值
+     */
     suspend fun getApiBaseUrl(dataStore: DataStore<Preferences>): String =
         dataStore.data.map { it[API_BASE_URL] ?: DEFAULT_API_BASE_URL }.first()
 
