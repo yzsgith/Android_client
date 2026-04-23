@@ -1,0 +1,43 @@
+---
+import ServerIsland from '../../components/ServerIsland.astro';
+import Skeleton from '../../components/Skeleton.astro';
+
+// 获取路由参数
+const { id } = Astro.params;
+const staticProductData = {
+  id,
+  name: `产品 ${id}`,
+  description: `这是产品 ${id} 的详细描述。此内容立即渲染，不受服务器岛延迟影响。`
+};
+---
+<html lang="zh-CN">
+<head>
+  <title>产品详情 - {staticProductData.name}</title>
+  <meta name="description" content={staticProductData.description} />
+</head>
+<body>
+  <main class="container">
+    <article>
+      <h1>{staticProductData.name}</h1>
+      <p>{staticProductData.description}</p>
+      
+      <!-- 服务器岛容器 -->
+      <div id="inventory-island">
+        <!-- Fallback 加载状态 -->
+        <Skeleton />
+        
+        <!-- 服务器岛组件 -->
+        <ServerIsland productId={id} />
+      </div>
+    </article>
+  </main>
+
+  <style>
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+  </style>
+</body>
+</html>

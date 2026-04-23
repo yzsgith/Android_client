@@ -1,25 +1,24 @@
 @startuml
-title 网络请求执行 - Uploader 发送请求并自动重试
+title 网络请求执行功能（精确版）
 
-participant "Caller (Worker/ViewModel)" as Caller
+participant "Caller" as Caller
 participant "Uploader" as Uploader
 participant "OkHttpClient" as Client
 participant "Server" as Server
 
-Caller -> Uploader: execute(UploadRequest)
-loop 重试循环 (maxAttempts)
-    Uploader -> Uploader: 构建 OkHttp Request
-    Uploader -> Client: newCall(request).execute()
+Caller -> Uploader: execute(request: UploadRequest)
+loop 重试次数（maxAttempts）
+    Uploader -> Uploader: buildOkHttpRequest()
+    Uploader -> Client: client.newCall(request).execute()
     Client -> Server: HTTP POST
     alt 成功
         Server --> Client: Response 2xx
         Client --> Uploader: Response
         Uploader --> Caller: Result.success(response)
-    else 失败 (异常或非2xx)
-        Client --> Uploader: 异常或错误响应
+    else 失败
+        Client --> Uploader: 异常或错误
         alt 还有重试次数
-            Uploader -> Uploader: delay(backoff)
-            Uploader -> Uploader: 增加重试计数
+            Uploader -> Uploader: delay(delayMs)
         else 重试耗尽
             Uploader --> Caller: Result.failure(exception)
         end

@@ -1,0 +1,19 @@
+@startuml
+title 传感器数据采集功能（精确版）
+
+participant "HeartRateCollector" as HR
+participant "AccelerometerCollector" as ACC
+participant "SensorDataRepository" as Repo
+participant "Room Database" as DB
+
+HR -> HR: start()
+HR -> HR: 模拟数据生成（每秒）
+HR -> Repo: sensorDataRepository.insertRawData(raw: RawData)
+Repo -> DB: rawDataDao.insert(entity: RawDataEntity)
+DB --> Repo: 插入成功
+ACC -> ACC: start()
+ACC -> ACC: 模拟数据生成（每200ms）
+ACC -> Repo: insertRawData(raw: RawData)
+Repo -> DB: rawDataDao.insert(entity: RawDataEntity)
+DB --> Repo: 插入成功
+@enduml

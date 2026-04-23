@@ -1,0 +1,17 @@
+
+
+---
+export function getStaticPaths() {
+  return [
+    { params: { dog: "clifford" }},
+    { params: { dog: "rover" }},
+    { params: { dog: "spot" }},
+    
+  ];
+}
+
+const { dog } = Astro.params;
+---
+
+
+<a href={`/index1?userId=10`}>查看个人资料</a>

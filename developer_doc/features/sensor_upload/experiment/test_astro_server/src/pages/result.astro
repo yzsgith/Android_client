@@ -1,0 +1,57 @@
+<html>
+<head>
+  <title>提交结果</title>
+  <script>
+    // 在页面加载时获取并显示数据
+    document.addEventListener('DOMContentLoaded', () => {
+      // 从 sessionStorage 获取数据
+      const data = sessionStorage.getItem('formData');
+      
+      if (data) {
+        try {
+          const formData = JSON.parse(data);
+          
+          // 创建结果显示
+          const resultDiv = document.createElement('div');
+          resultDiv.innerHTML = `
+            <h2>提交的信息</h2>
+            <p><strong>姓名：</strong> ${formData.name}</p>
+            <p><strong>邮箱：</strong> ${formData.email}</p>
+            <p><strong>兴趣：</strong> ${formData.interests.join(', ') || '无'}</p>
+          `;
+          
+          // 添加到页面
+          document.body.appendChild(resultDiv);
+          
+          // 添加返回链接
+          const backLink = document.createElement('a');
+          backLink.href = '/form';
+          backLink.textContent = '返回表单';
+          backLink.style.display = 'block';
+          backLink.style.marginTop = '20px';
+          document.body.appendChild(backLink);
+          
+        } catch (error) {
+          console.error('解析数据失败:', error);
+          showError();
+        }
+      } else {
+        showError();
+      }
+      
+      function showError() {
+        const errorDiv = document.createElement('div');
+        errorDiv.innerHTML = `
+          <p>未找到表单数据</p>
+          <a href="/form">返回表单页面</a>
+        `;
+        document.body.appendChild(errorDiv);
+      }
+    });
+  </script>
+</head>
+<body>
+  <h1>提交结果</h1>
+  <!-- 内容将通过JavaScript动态添加 -->
+</body>
+</html>

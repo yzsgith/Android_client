@@ -1,0 +1,51 @@
+<html>
+<head>
+  <title>信息收集表单</title>
+</head>
+<body>
+  <h1>用户信息收集</h1>
+  
+  <form id="user-form">
+    <div>
+      <label for="name">姓名：</label>
+      <input type="text" id="name" name="name" required>
+    </div>
+    
+    <div>
+      <label for="email">邮箱：</label>
+      <input type="email" id="email" name="email" required>
+    </div>
+    
+    <div>
+      <label>兴趣：</label>
+      <div>
+        <input type="checkbox" name="interests" value="阅读"> 阅读
+        <input type="checkbox" name="interests" value="运动"> 运动
+        <input type="checkbox" name="interests" value="音乐"> 音乐
+      </div>
+    </div>
+    
+    <button type="submit">提交</button>
+  </form>
+
+  <script>
+    document.getElementById('user-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      // 获取表单数据
+      const formData = new FormData(e.target);
+      const data = {
+        name: formData.get('name'),
+        email: formData.get('email'),
+        interests: formData.getAll('interests')
+      };
+      
+      // 将数据存储在 sessionStorage
+      sessionStorage.setItem('formData', JSON.stringify(data));
+      
+      // 跳转到结果页面
+      window.location.href = '/result';
+    });
+  </script>
+</body>
+</html>

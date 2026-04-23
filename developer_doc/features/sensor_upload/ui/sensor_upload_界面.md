@@ -1,9 +1,9 @@
 # 传感器上传模块 - 界面设计建议
 
 ## 相关文件
-- 设置界面 Activity：[SettingsActivity.kt](../../../app/src/main/java/com/sea/auspicious_sign/ui/settings/SettingsActivity.kt)
-- 界面 ViewModel：[SettingsViewModel.kt](../../../app/src/main/java/com/sea/auspicious_sign/ui/settings/SettingsViewModel.kt)
-- 配置定义：[AppPreferences.kt](../../../app/src/main/java/com/sea/auspicious_sign/utils/AppPreferences.kt)
+- 设置界面 Activity：[`SettingsActivity.kt`](../../../../app/src/main/java/com/sea/auspicious_sign/ui/settings/SettingsActivity.kt)
+- 界面 ViewModel：[`SettingsViewModel.kt`](../../../../app/src/main/java/com/sea/auspicious_sign/ui/settings/SettingsViewModel.kt)
+- 配置定义：[`AppPreferences.kt`](../../../../app/src/main/java/com/sea/auspicious_sign/utils/AppPreferences.kt)
 
 ## 界面布局建议
 
@@ -12,7 +12,7 @@
 ### 服务器地址
 - 控件：`TextField`
 - 说明：用户输入服务器基础 URL，实时保存到 `API_BASE_URL`。
-- 默认值：`https://default.api.com`
+- 默认值：`https://httpbin.org/post`
 
 ### 上传间隔
 - 控件：`Slider` 或 `DropdownMenu`
@@ -30,6 +30,6 @@
 - 可通过“立即上传”按钮手动触发一次 `SensorUploadWorker`。
 
 ## 待办事项
-- [ ] 实现 `SettingsActivity` 和 `SettingsViewModel`。
-- [ ] 在 `AndroidManifest.xml` 中注册该 Activity。
-- [ ] 在应用主菜单中添加“设置”入口。
+- [x] 实现 `SettingsActivity` 和 `SettingsViewModel`。
+- [x] 在 `AndroidManifest.xml` 中注册该 Activity。
+- [x] 在应用主菜单中添加“设置”入口。

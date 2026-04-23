@@ -1,26 +1,25 @@
 @startuml
-title 传感器数据可靠上传 - 分批上传未同步数据
+title 传感器数据可靠上传功能（精确版）
 
-participant "WorkManager" as WM
 participant "SensorUploadWorker" as Worker
 participant "RawDataDao" as Dao
 participant "Uploader" as Uploader
 database "Room" as DB
 participant "Netlify API" as API
 
-WM -> Worker: 触发 doWork() (定期或手动)
-loop 分批处理 (batchSize=50)
-    Worker -> Dao: getUnsyncedBatch(limit)
-    Dao -> DB: SELECT ... LIMIT
-    DB --> Dao: 返回最多50条
-    Dao --> Worker: List<RawDataEntity>
+Worker -> Worker: doWork()
+loop 分批 (batchSize = 50)
+    Worker -> Dao: getUnsyncedBatch(limit: Int)
+    Dao -> DB: SELECT ...
+    DB --> Dao: List<RawDataEntity>
+    Dao --> Worker: unsynced: List<RawDataEntity>
     Worker -> Worker: 构造 JSON 数组
-    Worker -> Uploader: execute(UploadRequest)
+    Worker -> Uploader: uploader.execute(request: UploadRequest)
     Uploader -> API: POST /api/sensor-data
-    API --> Uploader: Response (200)
-    Uploader --> Worker: Result.success
-    Worker -> Dao: update(synced = true)
+    API --> Uploader: Response
+    Uploader --> Worker: Result.success(response)
+    Worker -> Dao: update(entity.copy(synced = true))
     Dao -> DB: UPDATE
 end
-Worker --> WM: Result.success
+Worker --> Worker: 返回 Result.success()
 @enduml

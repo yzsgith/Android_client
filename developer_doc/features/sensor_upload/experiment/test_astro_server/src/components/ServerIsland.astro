@@ -1,0 +1,46 @@
+---
+// 模拟慢速数据获取（如数据库查询）
+const fetchData = async (productId) => {
+  // 模拟 3 秒延迟
+  await new Promise(resolve => setTimeout(resolve, 3000));
+  
+  // 模拟返回数据
+  return {
+    id: productId,
+    name: `产品 ${productId}`,
+    price: Math.floor(Math.random() * 100) + 50,
+    stock: Math.floor(Math.random() * 100)
+  };
+};
+
+// 从 props 获取产品 ID
+const { productId } = Astro.props;
+const productData = await fetchData(productId);
+---
+<!-- 服务器岛内容 -->
+<div class="server-island">
+  <h2>实时库存</h2>
+  <div class="stock-info">
+    <span>库存状态:</span>
+    <strong class={productData.stock > 0 ? "in-stock" : "out-of-stock"}>
+      {productData.stock > 0 ? `${productData.stock} 件可售` : "缺货"}
+    </strong>
+  </div>
+  <div class="price">¥{productData.price}</div>
+</div>
+
+<style>
+  .server-island {
+    border: 1px solid #eaeaea;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-top: 2rem;
+  }
+  .in-stock { color: #10b981; }
+  .out-of-stock { color: #ef4444; }
+  .price {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-top: 0.5rem;
+  }
+</style>

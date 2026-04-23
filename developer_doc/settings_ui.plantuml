@@ -1,23 +1,20 @@
 @startuml
-title 应用设置界面 - 展示配置项并实时保存
+title 应用设置界面功能（精确版）
 
 actor 用户
 participant "SettingsActivity" as Activity
 participant "SettingsViewModel" as VM
 participant "AppPreferences" as Prefs
 
-用户 -> Activity: 点击“设置”
+用户 -> Activity: 打开设置界面
 Activity -> Activity: setContent { SettingsScreen }
-Activity -> VM: viewModel(factory)
-VM -> Prefs: 读取各配置项的 Flow
-Prefs --> VM: 发射当前值
-VM --> Activity: 暴露 StateFlow
-Activity --> 用户: 显示 UI (TextField, Slider, Switch)
-用户 -> Activity: 修改某项配置
-Activity -> VM: 调用 updateXxx(newValue)
-VM -> Prefs: 调用 setXxx(dataStore, newValue)
-Prefs -> Prefs: 持久化
-Prefs --> VM: 完成
-VM --> Activity: 更新 UI 状态
-Activity --> 用户: 显示新值
+Activity -> VM: viewModel(factory: Factory)
+VM -> Prefs: getApiBaseUrlFlow(dataStore)
+Prefs --> VM: Flow<String>
+VM --> Activity: StateFlow<String>
+用户 -> Activity: 修改 TextField
+Activity -> VM: updateApiBaseUrl(newUrl: String)
+VM -> Prefs: setApiBaseUrl(dataStore, newUrl)
+Prefs --> VM: 无返回值
+VM --> Activity: 更新 UI
 @enduml

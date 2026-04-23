@@ -1,0 +1,9 @@
+---
+
+const url = new URL(Astro.request.url);
+console.log(url.searchParams)
+
+const userId = url.searchParams.get('userId');
+---
+
+ <h1>用户 ID: {userId}</h1>

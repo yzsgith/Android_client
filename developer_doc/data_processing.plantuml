@@ -1,20 +1,18 @@
 @startuml
-title 数据转换处理 - 通过处理器链转换传感器数据
+title 数据转换处理功能（精确版）
 
-participant "SensorDataRepository" as Repo
+participant "DataProcessRepository" as Repo
 participant "ProcessorRegistry" as Registry
 participant "ProcessorChain" as Chain
 participant "HeartRateSmoother" as Smoother
 participant "HeartRateAnalyzer" as Analyzer
-participant "Room" as DB
 
-Repo -> Registry: getChain(RawHeartRate::class)
+Repo -> Registry: getChain(dataType: KClass<out RawData>)
 Registry --> Repo: ProcessorChain
-Repo -> Chain: execute(rawHeartRate)
-Chain -> Smoother: process(RawHeartRate)
+Repo -> Chain: execute(input: Any)
+Chain -> Smoother: process(input: RawHeartRate)
 Smoother --> Chain: SmoothedHeartRate
-Chain -> Analyzer: process(SmoothedHeartRate)
+Chain -> Analyzer: process(input: SmoothedHeartRate)
 Analyzer --> Chain: HeartRateAlert
-Chain --> Repo: 最终 ConsumableData
-Repo -> DB: 存储结果
+Chain --> Repo: ConsumableData
 @enduml

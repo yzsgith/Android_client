@@ -1,27 +1,22 @@
 @startuml
-title 传感器自动采集模块_后台模式\n（心率 + 加速度双源并行采集，混合存储）
+title WebView 交互功能 - 用户主动打开前端页面并执行 JS 调用（精确版）
 
 actor 用户
-participant "HeartRateCollector" as HRCollector
-participant "AccelerometerCollector" as AccCollector
-participant "SensorDataRepository" as Repo
-participant "Room Database" as DB
+participant "MainActivity" as Main
+participant "WebViewActivity" as WebViewAct
+participant "WebView" as WV
+participant "WebViewBridge" as Bridge
 
-用户 -> HRCollector: 启动心率采集
-activate HRCollector
-HRCollector -> HRCollector: 每秒生成 RawHeartRate (模拟)
-HRCollector -> Repo: insertRawData(rawHeartRate)
-activate Repo
-Repo -> DB: 存储 RawDataEntity (type="heart_rate", dataJson)
-deactivate Repo
-
-用户 -> AccCollector: 启动加速度采集
-activate AccCollector
-AccCollector -> AccCollector: 每200ms生成 RawAccelerometer (模拟)
-AccCollector -> Repo: insertRawData(rawAccelerometer)
-activate Repo
-Repo -> DB: 存储 RawDataEntity (type="accelerometer", dataJson)
-deactivate Repo
-
-note right of DB : 两种数据混合存储在同一张 raw_data 表中\n通过 type 字段区分，dataJson 存储各自 JSON
+用户 -> Main: 点击“打开 WebView”按钮
+Main -> Main: startActivity(Intent intent)
+create WebViewAct
+Main -> WebViewAct: 实例化（系统创建）
+WebViewAct -> WebViewAct: onCreate(savedInstanceState: Bundle?)
+WebViewAct -> WV: webView.loadUrl(url: String)
+WV -> Bridge: webView.addJavascriptInterface(bridge, "AndroidBridge")
+用户 -> WV: 点击 HTML 中的按钮\n（调用 AndroidBridge.showToast）
+WV -> Bridge: bridge.showToast(message: String)
+Bridge --> Bridge: 执行 Toast 显示
+Bridge --> WV: 无返回值
+WV --> 用户: 显示 Toast
 @enduml

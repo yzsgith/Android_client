@@ -1,28 +1,32 @@
+// TODO: 作用 -- 加载服务器前端页面，配置 WebView 安全策略，并注册 JS 桥接接口
 package com.sea.auspicious_sign.webview
 
 import android.annotation.SuppressLint
-import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.util.Log
-import android.view.View
-import android.webkit.WebResourceError
-import android.webkit.WebResourceRequest
-import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.webkit.RenderProcessGoneDetail
+import android.util.Log
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import com.sea.auspicious_sign.R
-import java.net.URL
 
+/**
+ * WebView 展示 Activity，负责加载指定的 URL，并暴露原生方法给前端 JavaScript 使用。
+ *
+ * 执行本任务前必须满足以下隐性依赖：
+ * - 已在 AndroidManifest.xml 中声明本 Activity。
+ * - 已添加 INTERNET 权限（若加载网络 URL）。
+ * - 若加载 HTTP 明文流量，需在清单中设置 `android:usesCleartextTraffic="true"`。
+ *
+ * @see WebViewBridge
+ * @see [webview_interaction.plantuml] 对应时序图
+ */
 class WebViewActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
     private lateinit var webViewBridge: WebViewBridge
-    private val mainHandler = Handler(Looper.getMainLooper())
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,9 +37,9 @@ class WebViewActivity : AppCompatActivity() {
         webViewBridge = WebViewBridge(this, webView)
 
         configureWebView()
-        loadUrl()   // 默认加载网络地址
+        loadUrl()
 
-        // 处理返回事件（兼容手势返回）
+        // 处理返回事件（兼容手势返回和物理返回键）
         onBackPressedDispatcher.addCallback(
             this,
             object : OnBackPressedCallback(true) {
@@ -50,68 +54,46 @@ class WebViewActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * 配置 WebView 的各项设置和安全策略。
+     */
     @SuppressLint("SetJavaScriptEnabled")
     private fun configureWebView() {
         webView.settings.apply {
-            javaScriptEnabled = true
-            domStorageEnabled = true
-            allowFileAccess = false
-            allowContentAccess = false
+            javaScriptEnabled = true               // 启用 JS
+            domStorageEnabled = true               // 启用 localStorage
+            allowFileAccess = false                // 禁止访问文件系统（安全）
+            allowContentAccess = false             // 禁止 Content Provider
             mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW
             setSupportZoom(false)
             builtInZoomControls = false
             displayZoomControls = false
             loadWithOverviewMode = true
-            useWideViewPort = true
-            // 缓存设置：避免旧数据干扰
-            cacheMode = android.webkit.WebSettings.LOAD_NO_CACHE
+            useWideViewPort = true                 // 适配移动端视口
         }
 
-        // 模拟器兼容：如果软件渲染可解决崩溃问题，取消注释下行
-        // webView.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
-
         webView.webViewClient = object : WebViewClient() {
-            override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-                super.onPageStarted(view, url, favicon)
-                Log.d("WebView", "onPageStarted: $url")
+            // 拦截 URL，仅允许特定域名（可根据实际需求调整）
+            override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
+                return if (url != null && (url.startsWith("https://your-server.com") || url.startsWith("http://10.0.2.2"))) {
+                    false  // 允许加载
+                } else {
+                    true   // 阻止其他域名
+                }
             }
 
-            override fun onPageFinished(view: WebView?, url: String?) {
-                super.onPageFinished(view, url)
-                Log.d("WebView", "onPageFinished: $url")
-            }
-
-            override fun onReceivedError(
-                view: WebView?,
-                request: WebResourceRequest?,
-                error: WebResourceError?
-            ) {
-                super.onReceivedError(view, request, error)
-                Log.e("WebView", "Error: ${error?.description} (${error?.errorCode})")
-            }
-
-            override fun onReceivedHttpError(
-                view: WebView?,
-                request: WebResourceRequest?,
-                errorResponse: WebResourceResponse?
-            ) {
-                super.onReceivedHttpError(view, request, errorResponse)
-                Log.e("WebView", "HTTP error: ${errorResponse?.statusCode}")
-            }
-
-            override fun onRenderProcessGone(
-                view: WebView?,
-                detail: android.webkit.RenderProcessGoneDetail?
-            ): Boolean {
-                Log.e("WebView", "Render process gone, detail: $detail")
-                // 尝试重启 Activity（可选）
+            // 处理渲染进程崩溃（模拟器常见问题）
+            override fun onRenderProcessGone(view: WebView?, detail: RenderProcessGoneDetail?): Boolean {
+                Log.e("WebViewActivity", "Render process gone, detail: $detail")
                 finish()
                 return true
             }
         }
 
+        // 添加 JS 桥接接口
         webView.addJavascriptInterface(webViewBridge, "AndroidBridge")
 
+        // 移除危险的 JavaScript 接口（Android 4.2 以上）
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             webView.removeJavascriptInterface("searchBoxJavaBridge_")
             webView.removeJavascriptInterface("accessibility")
@@ -119,35 +101,13 @@ class WebViewActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 加载目标 URL。
+     * 默认加载本地测试服务器的地址（可通过 Intent 传递自定义 URL）。
+     */
     private fun loadUrl() {
-        // 方式一：直接加载网络地址（需要 adb reverse 或真机）
-        val url = "http://localhost:8080"
+        val url = intent.getStringExtra("url") ?: "http://10.0.2.2:8080"
         webView.loadUrl(url)
-
-        // 方式二：如果方式一失败，可尝试先加载简单 HTML 测试（取消注释下方代码）
-        /*
-        webView.loadDataWithBaseURL(
-            null,
-            "<html><body><h1>Test from data</h1></body></html>",
-            "text/html",
-            "UTF-8",
-            null
-        )
-        */
-
-        // 方式三：通过网络请求获取 HTML 字符串再加载（绕过 loadUrl 可能的问题）
-        /*
-        thread {
-            try {
-                val html = URL(url).readText()
-                mainHandler.post {
-                    webView.loadDataWithBaseURL(url, html, "text/html", "UTF-8", null)
-                }
-            } catch (e: Exception) {
-                Log.e("WebView", "Fetch HTML failed", e)
-            }
-        }
-        */
     }
 
     override fun onDestroy() {
