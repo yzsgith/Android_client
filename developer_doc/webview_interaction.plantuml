@@ -1,0 +1,19 @@
+@startuml
+title WebView 交互功能 - 用户主动打开前端页面并执行 JS 调用
+
+actor 用户
+participant "MainActivity" as Main
+participant "WebViewActivity" as WebViewAct
+participant "WebViewBridge" as Bridge
+participant "WebView" as WV
+
+用户 -> Main: 点击“打开 WebView”
+Main -> WebViewAct: startActivity(Intent)
+WebViewAct -> WebViewAct: onCreate()
+WebViewAct -> WV: 加载 URL (本地或远程)
+WV -> Bridge: 注册 JS 接口 "AndroidBridge"
+用户 -> WV: 点击 HTML 按钮
+WV -> Bridge: 调用 showToast()
+Bridge --> WV: 弹出 Toast
+WV --> 用户: 显示结果
+@enduml

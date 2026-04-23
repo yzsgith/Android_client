@@ -1,0 +1,20 @@
+@startuml
+title 动态修改服务器配置 - 保存和读取配置
+
+actor 用户
+participant "SettingsViewModel" as VM
+participant "AppPreferences" as Prefs
+participant "DataStore" as DS
+
+用户 -> VM: 修改 API 地址
+VM -> Prefs: setApiBaseUrl(dataStore, newUrl)
+Prefs -> DS: edit { it[API_BASE_URL] = newUrl }
+DS --> Prefs: 保存成功
+Prefs --> VM: 完成
+用户 -> VM: 退出设置再进入
+VM -> Prefs: getApiBaseUrlFlow(dataStore).collect
+Prefs -> DS: 读取数据
+DS --> Prefs: 返回存储的 URL
+Prefs --> VM: 发射新值
+VM --> 用户: 显示最新地址
+@enduml
