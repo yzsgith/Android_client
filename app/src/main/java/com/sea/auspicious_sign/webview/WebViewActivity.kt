@@ -2,6 +2,7 @@
 package com.sea.auspicious_sign.webview
 
 import android.annotation.SuppressLint
+import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
 import android.webkit.WebView
@@ -69,17 +70,20 @@ class WebViewActivity : AppCompatActivity() {
             builtInZoomControls = false
             displayZoomControls = false
             loadWithOverviewMode = true
-            useWideViewPort = true                 // 适配移动端视口
+            useWideViewPort = true
+            // 缓存设置：避免旧数据干扰
+            cacheMode = android.webkit.WebSettings.LOAD_NO_CACHE
         }
 
         webView.webViewClient = object : WebViewClient() {
-            // 拦截 URL，仅允许特定域名（可根据实际需求调整）
-            override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-                return if (url != null && (url.startsWith("https://your-server.com") || url.startsWith("http://10.0.2.2"))) {
-                    false  // 允许加载
-                } else {
-                    true   // 阻止其他域名
-                }
+            override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+                super.onPageStarted(view, url, favicon)
+                Log.d("WebView", "onPageStarted: $url")
+            }
+
+            override fun onPageFinished(view: WebView?, url: String?) {
+                super.onPageFinished(view, url)
+                Log.d("WebView", "onPageFinished: $url")
             }
 
             // 处理渲染进程崩溃（模拟器常见问题）
@@ -106,7 +110,8 @@ class WebViewActivity : AppCompatActivity() {
      * 默认加载本地测试服务器的地址（可通过 Intent 传递自定义 URL）。
      */
     private fun loadUrl() {
-        val url = intent.getStringExtra("url") ?: "http://10.0.2.2:8080"
+        // 方式一：直接加载网络地址（需要 adb reverse 或真机）
+        val url = "http://localhost:8080"
         webView.loadUrl(url)
     }
 
