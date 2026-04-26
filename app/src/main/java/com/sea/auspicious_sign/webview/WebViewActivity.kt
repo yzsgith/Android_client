@@ -53,6 +53,9 @@ class WebViewActivity : AppCompatActivity() {
                 }
             }
         )
+
+        // 初始化浏览器工具栏（一行调用，所有控件自动绑定）
+        initToolbar()
     }
 
     /**
@@ -79,11 +82,14 @@ class WebViewActivity : AppCompatActivity() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
                 super.onPageStarted(view, url, favicon)
                 Log.d("WebView", "onPageStarted: $url")
+                // 通知工具栏更新地址栏和按钮状态
+                runCatching { initToolbar().onPageStarted(url) }
             }
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 Log.d("WebView", "onPageFinished: $url")
+                runCatching { initToolbar().onPageFinished() }
             }
 
             // 处理渲染进程崩溃（模拟器常见问题）
@@ -110,7 +116,6 @@ class WebViewActivity : AppCompatActivity() {
      * 默认加载本地测试服务器的地址（可通过 Intent 传递自定义 URL）。
      */
     private fun loadUrl() {
-        // 方式一：直接加载网络地址（需要 adb reverse 或真机）
         val url = "http://localhost:8080"
         webView.loadUrl(url)
     }
