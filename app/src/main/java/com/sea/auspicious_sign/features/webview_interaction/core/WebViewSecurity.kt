@@ -1,39 +1,38 @@
-package com.sea.auspicious_sign.webview
+// TODO: 作用 -- WebView 安全配置扩展函数
+package com.sea.auspicious_sign.features.webview_interaction.core
 
 import android.os.Build
 import android.webkit.WebView
 import android.webkit.WebViewClient
 
 /**
- * 为 WebView 应用安全配置的扩展函数
+ * 为 WebView 应用安全配置扩展函数。
+ * 包括禁止文件访问、禁止混合内容、设置域名白名单和移除危险 JavaScript 接口。
+ *
+ * @receiver WebView 实例
  */
 fun WebView.applySecuritySettings() {
     settings.apply {
-        // 禁用文件跨域访问
         allowFileAccess = false
         allowContentAccess = false
-        // 禁止混合内容（HTTP 和 HTTPS 混合）
         mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW
-        // 禁用保存密码
         savePassword = false
-        // 如果不需要定位，可禁用
         setGeolocationEnabled(false)
     }
 
-    // 设置 WebViewClient 只允许加载特定域名（白名单）
     webViewClient = object : WebViewClient() {
+        /**
+         * 拦截 URL 加载，只允许白名单域名。
+         * @param view 当前 WebView
+         * @param url 要加载的 URL
+         * @return true 表示拦截，false 表示允许加载
+         */
         override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-            // TODO: 替换为你的服务器域名
             val allowedHost = "your-server.com"
-            return if (url?.contains(allowedHost) == true) {
-                false  // 允许加载
-            } else {
-                true   // 拦截外部链接
-            }
+            return if (url?.contains(allowedHost) == true) false else true
         }
     }
 
-    // 移除 JavaScript 接口中危险的系统对象（Android 4.2 以上默认安全）
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
         removeJavascriptInterface("searchBoxJavaBridge_")
         removeJavascriptInterface("accessibility")

@@ -1,0 +1,39 @@
+@startuml
+title 浏览器工具栏辅助功能交互时序图
+
+actor 用户
+participant "WebViewActivity" as Activity
+participant "BrowserToolbarHelper" as Helper
+participant "WebView" as WV
+
+用户 -> Activity: 打开 WebView 页面
+Activity -> Activity: 初始化 WebView
+Activity -> Helper: 创建 Helper 实例 (或调用 enableToolbar())
+Activity -> Helper: 绑定控件 (后退/前进/地址栏/退出)
+Helper --> Activity: 设置监听器
+
+用户 -> Helper: 点击后退按钮
+Helper -> WV: webView.goBack()
+WV --> Helper: 页面后退完成
+Helper -> Helper: 更新按钮状态 (后退禁用、前进启用等)
+Helper --> 用户: 显示上一页
+
+用户 -> Helper: 点击前进按钮
+Helper -> WV: webView.goForward()
+WV --> Helper: 页面前进完成
+Helper -> Helper: 更新按钮状态
+
+用户 -> Helper: 在地址栏输入 URL 并点击“前往”
+Helper -> Helper: loadUrlFromInput() 规范化 URL
+Helper -> WV: webView.loadUrl(url)
+WV -> WV: 开始加载页面
+WV --> Helper: 回调 onPageStarted(url)
+Helper -> Helper: 更新地址栏文本、按钮状态 (后退/前进可用性)
+WV -> WV: 页面加载中
+WV --> Helper: 回调 onPageFinished()
+Helper -> Helper: 再次更新按钮状态
+
+用户 -> Helper: 点击退出按钮
+Helper -> Activity: activity.finish()
+Activity --> 用户: 关闭 Activity
+@enduml

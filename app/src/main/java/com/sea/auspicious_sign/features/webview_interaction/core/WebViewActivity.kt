@@ -1,5 +1,5 @@
-// TODO: 作用 -- 加载服务器前端页面，配置 WebView 安全策略，并注册 JS 桥接接口
-package com.sea.auspicious_sign.webview
+// TODO: 作用 -- WebView 交互功能的主入口 Activity，负责加载网页、配置安全策略和注册 JS 桥接
+package com.sea.auspicious_sign.features.webview_interaction.core
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
@@ -14,9 +14,10 @@ import androidx.appcompat.app.AppCompatActivity
 import com.sea.auspicious_sign.R
 
 /**
- * WebView 展示 Activity，负责加载指定的 URL，并暴露原生方法给前端 JavaScript 使用。
+ * WebView 展示 Activity，是 `webview_interaction` 功能的核心入口。
+ * 负责加载指定 URL，配置 WebView 安全策略，并注册 [WebViewBridge] 供 JavaScript 调用。
  *
- * 执行本任务前必须满足以下隐性依赖：
+ * 隐性依赖：
  * - 已在 AndroidManifest.xml 中声明本 Activity。
  * - 已添加 INTERNET 权限（若加载网络 URL）。
  * - 若加载 HTTP 明文流量，需在清单中设置 `android:usesCleartextTraffic="true"`。
@@ -29,6 +30,11 @@ class WebViewActivity : AppCompatActivity() {
     private lateinit var webView: WebView
     private lateinit var webViewBridge: WebViewBridge
 
+    /**
+     * Activity 创建时的回调，初始化视图、配置 WebView 并加载 URL。
+     *
+     * @param savedInstanceState 保存的实例状态（可为 null）
+     */
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,6 +50,9 @@ class WebViewActivity : AppCompatActivity() {
         onBackPressedDispatcher.addCallback(
             this,
             object : OnBackPressedCallback(true) {
+                /**
+                 * 处理返回键/手势：如果 WebView 可以后退则后退，否则关闭 Activity。
+                 */
                 override fun handleOnBackPressed() {
                     if (webView.canGoBack()) {
                         webView.goBack()
@@ -53,28 +62,28 @@ class WebViewActivity : AppCompatActivity() {
                 }
             }
         )
-
-        // 初始化浏览器工具栏（一行调用，所有控件自动绑定）
-        initToolbar()
     }
 
     /**
      * 配置 WebView 的各项设置和安全策略。
+     * - 启用 JavaScript 和 DOM 存储。
+     * - 禁用文件访问和混合内容。
+     * - 设置 WebViewClient 以监听页面加载和渲染进程崩溃。
+     * - 添加 JS 桥接接口并移除危险接口。
      */
     @SuppressLint("SetJavaScriptEnabled")
     private fun configureWebView() {
         webView.settings.apply {
-            javaScriptEnabled = true               // 启用 JS
-            domStorageEnabled = true               // 启用 localStorage
-            allowFileAccess = false                // 禁止访问文件系统（安全）
-            allowContentAccess = false             // 禁止 Content Provider
+            javaScriptEnabled = true
+            domStorageEnabled = true
+            allowFileAccess = false
+            allowContentAccess = false
             mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW
             setSupportZoom(false)
             builtInZoomControls = false
             displayZoomControls = false
             loadWithOverviewMode = true
             useWideViewPort = true
-            // 缓存设置：避免旧数据干扰
             cacheMode = android.webkit.WebSettings.LOAD_NO_CACHE
         }
 
@@ -82,17 +91,19 @@ class WebViewActivity : AppCompatActivity() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
                 super.onPageStarted(view, url, favicon)
                 Log.d("WebView", "onPageStarted: $url")
-                // 通知工具栏更新地址栏和按钮状态
-                runCatching { initToolbar().onPageStarted(url) }
             }
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 Log.d("WebView", "onPageFinished: $url")
-                runCatching { initToolbar().onPageFinished() }
             }
 
-            // 处理渲染进程崩溃（模拟器常见问题）
+            /**
+             * 处理 WebView 渲染进程崩溃（模拟器常见问题）。
+             * @param view 发生崩溃的 WebView
+             * @param detail 崩溃详情
+             * @return true 表示已处理，Activity 将关闭
+             */
             override fun onRenderProcessGone(view: WebView?, detail: RenderProcessGoneDetail?): Boolean {
                 Log.e("WebViewActivity", "Render process gone, detail: $detail")
                 finish()
@@ -100,10 +111,7 @@ class WebViewActivity : AppCompatActivity() {
             }
         }
 
-        // 添加 JS 桥接接口
         webView.addJavascriptInterface(webViewBridge, "AndroidBridge")
-
-        // 移除危险的 JavaScript 接口（Android 4.2 以上）
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             webView.removeJavascriptInterface("searchBoxJavaBridge_")
             webView.removeJavascriptInterface("accessibility")
@@ -113,13 +121,16 @@ class WebViewActivity : AppCompatActivity() {
 
     /**
      * 加载目标 URL。
-     * 默认加载本地测试服务器的地址（可通过 Intent 传递自定义 URL）。
+     * URL 优先从 Intent 的 "url" 附加数据中获取，否则使用默认本地测试地址。
      */
     private fun loadUrl() {
-        val url = "http://localhost:8080"
+        val url = intent.getStringExtra("url") ?: "http://localhost:8080"
         webView.loadUrl(url)
     }
 
+    /**
+     * Activity 销毁时释放 WebView 资源。
+     */
     override fun onDestroy() {
         webView.destroy()
         super.onDestroy()

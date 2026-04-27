@@ -16,13 +16,14 @@ import androidx.lifecycle.lifecycleScope
 import androidx.work.Constraints
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import com.sea.auspicious_sign.features.webview_interaction.core.WebViewActivity
 import com.sea.auspicious_sign.sensor.SensorDataRepository
 import com.sea.auspicious_sign.sensor.collector.AccelerometerCollector
 import com.sea.auspicious_sign.sensor.collector.HeartRateCollector
 import com.sea.auspicious_sign.sensor.upload.SensorUploadWorker
 import com.sea.auspicious_sign.ui.settings.SettingsActivity
 import com.sea.auspicious_sign.ui.theme.Auspicious_signTheme
-import com.sea.auspicious_sign.webview.WebViewActivity
+
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
