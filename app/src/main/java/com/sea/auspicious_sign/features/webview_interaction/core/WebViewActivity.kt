@@ -5,13 +5,15 @@ import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.webkit.RenderProcessGoneDetail
-import android.util.Log
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.sea.auspicious_sign.R
+import kotlinx.coroutines.launch
 
 /**
  * WebView 展示 Activity，是 `webview_interaction` 功能的核心入口。
@@ -45,6 +47,11 @@ class WebViewActivity : AppCompatActivity() {
 
         configureWebView()
         loadUrl()
+
+        //启动辅助功能
+        lifecycleScope.launch {
+            AuxiliaryRegistry.initializeAll(this@WebViewActivity)
+        }
 
         // 处理返回事件（兼容手势返回和物理返回键）
         onBackPressedDispatcher.addCallback(
@@ -104,7 +111,10 @@ class WebViewActivity : AppCompatActivity() {
              * @param detail 崩溃详情
              * @return true 表示已处理，Activity 将关闭
              */
-            override fun onRenderProcessGone(view: WebView?, detail: RenderProcessGoneDetail?): Boolean {
+            override fun onRenderProcessGone(
+                view: WebView?,
+                detail: RenderProcessGoneDetail?
+            ): Boolean {
                 Log.e("WebViewActivity", "Render process gone, detail: $detail")
                 finish()
                 return true
@@ -134,5 +144,10 @@ class WebViewActivity : AppCompatActivity() {
     override fun onDestroy() {
         webView.destroy()
         super.onDestroy()
+    }
+
+    companion object {
+        // 存储辅助功能初始化回调，key 为唯一标识，value 为接收 Activity 实例的挂起函数
+        val auxiliaryHooks = mutableMapOf<String, suspend (WebViewActivity) -> Unit>()
     }
 }

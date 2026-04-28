@@ -124,4 +124,7 @@ dependencies {
 
 //  是官方推荐的持久化键值存储，支持 Kotlin 协程，类型安全，且默认值处理方便。
     implementation("androidx.datastore:datastore-preferences:1.1.0")
+
+    ksp(project(":processor"))   // 注解处理器
+    implementation(project(":annotations"))
 }
