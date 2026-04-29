@@ -1,81 +1,75 @@
 package com.sea.auspicious_sign.processor
 
-import com.google.auto.service.AutoService
-import com.sea.auspicious_sign.annotations.WebViewAuxiliary
-import com.sea.auspicious_sign.core.WebViewAuxiliaryInitializer
-import com.squareup.kotlinpoet.*
-import javax.annotation.processing.*
-import javax.lang.model.SourceVersion
-import javax.lang.model.element.ElementKind
-import javax.lang.model.element.TypeElement
-import javax.tools.Diagnostic
+import com.google.devtools.ksp.processing.*
+import com.google.devtools.ksp.symbol.KSAnnotated
+import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.validate
 
-@AutoService(Processor::class)
-class WebViewAuxiliaryProcessor : AbstractProcessor() {
+class WebViewAuxiliaryProcessor(private val environment: SymbolProcessorEnvironment) : SymbolProcessor {
+    override fun process(resolver: Resolver): List<KSAnnotated> {
+        val symbols = resolver.getSymbolsWithAnnotation("com.sea.auspicious_sign.annotations.WebViewAuxiliary")
+            .filterIsInstance<KSClassDeclaration>()
+            .filter { it.validate() }
+            .toList()
 
-    private lateinit var messager: Messager
-    private lateinit var filer: Filer
+        if (symbols.isEmpty()) return emptyList()
 
-    override fun getSupportedAnnotationTypes(): MutableSet<String> =
-        mutableSetOf(WebViewAuxiliary::class.java.canonicalName)
-
-    override fun getSupportedSourceVersion(): SourceVersion = SourceVersion.latestSupported()
-
-    override fun init(processingEnv: ProcessingEnvironment) {
-        super.init(processingEnv)
-        messager = processingEnv.messager
-        filer = processingEnv.filer
-    }
-
-    override fun process(
-        annotations: MutableSet<out TypeElement>,
-        roundEnv: RoundEnvironment
-    ): Boolean {
-        val auxiliaryElements = roundEnv.getElementsAnnotatedWith(WebViewAuxiliary::class.java)
-            .filter { it.kind == ElementKind.CLASS }
-            .mapNotNull { element ->
-                val typeElement = element as TypeElement
-                val implementsInterface = typeElement.interfaces.any {
-                    it.toString() == WebViewAuxiliaryInitializer::class.java.canonicalName
-                }
-                if (!implementsInterface) {
-                    messager.printMessage(
-                        Diagnostic.Kind.ERROR,
-                        "${element.simpleName} is annotated with @WebViewAuxiliary but does not implement WebViewAuxiliaryInitializer",
-                        element
-                    )
-                    return@mapNotNull null
-                }
-                typeElement
+        // 验证每个符号是否实现了 WebViewAuxiliaryInitializer
+        val validClasses = symbols.filter { clazz ->
+            clazz.superTypes.any { superType ->
+                superType.resolve().declaration.qualifiedName?.asString() == "com.sea.auspicious_sign.core.WebViewAuxiliaryInitializer"
             }
+        }
 
-        if (auxiliaryElements.isEmpty()) return false
-
-        val fileSpec = generateRegistryFile(auxiliaryElements)
-        fileSpec.writeTo(filer)
-        return true
+        if (validClasses.isNotEmpty()) {
+            generateRegistry(validClasses)
+        } else {
+            environment.logger.warn("No valid auxiliary classes found")
+        }
+        return emptyList()
     }
 
-    private fun generateRegistryFile(elements: List<TypeElement>): FileSpec {
-        val classBuilder = TypeSpec.objectBuilder("AuxiliaryRegistry")
-            .addFunction(
-                FunSpec.builder("initializeAll")
-                    .addParameter("activity", ClassName("androidx.appcompat.app", "AppCompatActivity"))
-                    .addCode(elements.joinToString("\n") { element ->
-                        val className = ClassName.get(element)
-                        val instanceName = element.simpleName.toString().decapitalize()
-                        """
-                        val $instanceName = ${className.canonicalName}()
-                        $instanceName.initialize(activity)
-                        """.trimIndent()
-                    })
-                    .returns(Unit::class)
-                    .build()
-            )
-            .build()
+    private fun generateRegistry(classes: List<KSClassDeclaration>) {
+        val packageName = "com.sea.auspicious_sign.generated"
+        val className = "AuxiliaryRegistry"
 
-        return FileSpec.builder("com.sea.auspicious_sign.generated", "AuxiliaryRegistry")
-            .addType(classBuilder)
-            .build()
+        val code = buildString {
+            appendLine("package $packageName")
+            appendLine()
+            appendLine("import android.app.Activity")
+            appendLine("import kotlinx.coroutines.CoroutineScope")
+            appendLine("import kotlinx.coroutines.launch")
+            appendLine()
+            appendLine("object $className {")
+            appendLine("    suspend fun initializeAll(activity: Activity) {")
+            for (clazz in classes) {
+                val fullName = clazz.qualifiedName!!.asString()
+                val instanceName = clazz.simpleName.asString().decapitalize()
+                appendLine("        val $instanceName = $fullName()")
+                appendLine("        $instanceName.initialize(activity)")
+            }
+            appendLine("    }")
+            appendLine("}")
+        }
+
+        try {
+            val file = environment.codeGenerator.createNewFile(
+                dependencies = Dependencies(false),
+                packageName = packageName,
+                fileName = className
+            )
+            file.bufferedWriter().use { writer ->
+                writer.write(code)
+            }
+            environment.logger.info("Generated $className successfully")
+        } catch (e: Exception) {
+            environment.logger.error("Failed to generate file: ${e.message}")
+        }
+    }
+}
+
+class WebViewAuxiliaryProcessorProvider : SymbolProcessorProvider {
+    override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor {
+        return WebViewAuxiliaryProcessor(environment)
     }
 }

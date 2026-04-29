@@ -13,6 +13,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.sea.auspicious_sign.R
+import com.sea.auspicious_sign.generated.AuxiliaryRegistry
 import kotlinx.coroutines.launch
 
 /**

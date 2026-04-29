@@ -14,10 +14,7 @@ kotlin {
     }
 }
 dependencies {
+    implementation("com.google.devtools.ksp:symbol-processing-api:2.0.21-1.0.28")
     implementation("com.google.auto.service:auto-service:1.1.1")
-    implementation("com.squareup:kotlinpoet:1.14.2")
-    implementation("com.squareup:kotlinpoet-ksp:1.14.2")   // 新增
-
     implementation(project(":annotations"))
-    implementation("com.google.devtools.ksp:symbol-processing-api:1.9.22-1.0.18")
 }
