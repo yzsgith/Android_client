@@ -1,0 +1,3 @@
+com.sea.auspicious_sign.spi.impl.EnglishGreeting
+com.sea.auspicious_sign.spi.impl.FrenchGreeting
+com.sea.auspicious_sign.spi.impl.ChineseGreeting
