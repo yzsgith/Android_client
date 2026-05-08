@@ -71,8 +71,12 @@ app/src/main/java/com/sea/auspicious_sign/
 │   │   ├── WebViewSecurity.kt              # 安全配置扩展
 │   │   ├── auxiliary/                      # 辅助扩展（可选）
 │   │   │   └── toolbar/                    # 浏览器工具栏
-│   │   │       ├── BrowserToolbarHelper.kt
-│   │   │       └── ToolbarExtensions.kt
+│   │   │      ├── GoBack.kt
+│   │   │      ├── GoForward.kt
+│   │   │      ├── LoadUrl.kt
+│   │   │      ├── Exit.kt
+│   │   │      ├── ToolbarManager.kt   # 可选：组装管理器
+│   │   │      └── ToolbarAuxiliary.kt # KSP 自动注册入口
 │   │   └── resources/                      # 功能专用资源（可选）
 │   │       ├── layout/activity_webview.xml
 │   │       └── drawable/ic_back.xml

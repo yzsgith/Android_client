@@ -1,6 +1,7 @@
 // TODO: 作用 -- 浏览器工具栏辅助类，封装后退、前进、地址栏、退出等交互逻辑
 package com.sea.auspicious_sign.features.webview_interaction.auxiliary.toolbar
 
+import android.util.Log
 import android.view.inputmethod.EditorInfo
 import android.webkit.WebView
 import android.widget.Button
@@ -43,6 +44,7 @@ class BrowserToolbarHelper(private val activity: AppCompatActivity, private val 
      * 设置地址栏的软键盘“前往”动作监听。
      */
     private fun setupUrlInput() {
+        Log.i("testEvent","go in setupUrlInput1")
         urlEditText.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_GO) {
                 loadUrlFromInput()
@@ -55,6 +57,7 @@ class BrowserToolbarHelper(private val activity: AppCompatActivity, private val 
      * 从地址栏获取用户输入的 URL，规范格式后加载到 WebView。
      */
     private fun loadUrlFromInput() {
+        Log.i("testEvent","go in loadUrlFromInput2")
         var url = urlEditText.text.toString().trim()
         if (url.isEmpty()) return
         if (!url.startsWith("http://") && !url.startsWith("https://")) {
@@ -67,6 +70,7 @@ class BrowserToolbarHelper(private val activity: AppCompatActivity, private val 
      * 根据 WebView 当前的导航历史，更新后退/前进按钮的启用状态。
      */
     private fun updateButtonsState() {
+        Log.i("testEvent","go in updateButtonsState3")
         backButton.isEnabled = webView.canGoBack()
         forwardButton.isEnabled = webView.canGoForward()
     }
@@ -76,6 +80,7 @@ class BrowserToolbarHelper(private val activity: AppCompatActivity, private val 
      * @param url 正在加载的 URL
      */
     fun onPageStarted(url: String?) {
+        Log.i("testEvent","go in onPageStarted4")
         url?.let { urlEditText.setText(it) }
         updateButtonsState()
     }
@@ -84,6 +89,7 @@ class BrowserToolbarHelper(private val activity: AppCompatActivity, private val 
      * 当页面加载完成时调用，更新按钮状态。
      */
     fun onPageFinished() {
+        Log.i("testEvent","go in onPageFinished5")
         updateButtonsState()
     }
 }
